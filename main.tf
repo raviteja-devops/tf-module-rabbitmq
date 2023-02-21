@@ -30,7 +30,6 @@ resource "aws_mq_broker" "rabbitmq" {
   host_instance_type = var.host_instance_type
   security_groups    = [aws_security_group.rabbitmq.id]
   subnet_ids         = var.deployment_mode == "SINGLE_INSTANCE" ? [var.subnet_ids[0]] : var.subnet_ids
-# if deployment mode is single instance then [var.subnet_ids[0] is the value, ifnot take all subnet id's
 
   encryption_options {
     use_aws_owned_key = false
@@ -42,3 +41,5 @@ resource "aws_mq_broker" "rabbitmq" {
     password = data.aws_ssm_parameter.PASS.value
   }
 }
+
+# if deployment mode is single instance then [var.subnet_ids[0] is the value, ifnot take all subnet id's
