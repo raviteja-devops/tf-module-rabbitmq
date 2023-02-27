@@ -9,6 +9,13 @@ resource "aws_security_group" "rabbitmq" {
     protocol         = "tcp"
     cidr_blocks      = var.allow_cidr
   }
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.bastion_cidr
+  }
   egress {
     from_port        = 0
     to_port          = 0
@@ -67,7 +74,8 @@ resource "aws_spot_instance_request" "rabbitmq" {
   wait_for_fulfillment   = true
   user_data              = base64encode(templatefile("${path.module}/user-data.sh", { component = "rabbitmq", env = var.env }))
   iam_instance_profile   = aws_iam_instance_profile.profile.name
-
+# it creates the spot request and comes out, but using "wait_for_fulfillment" waits for the server to create,
+# because before going to route 53 record creation, server needs to be ready to fetch privateIP
   tags = merge(
     local.common_tags,
     { Name = "${var.env}-rabbitmq" }
@@ -76,7 +84,7 @@ resource "aws_spot_instance_request" "rabbitmq" {
 
 resource "aws_route53_record" "rabbitmq" {
   zone_id = "Z040944033CUGWUDK9I6T"
-  name    = "rabbitmq-${var.env}.devopsb70.online"
+  name    = "rabbitmq-${var.env}.raviteja.online"
   type    = "A"
   ttl     = 30
   records = [aws_spot_instance_request.rabbitmq.private_ip]
